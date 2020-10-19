@@ -1,0 +1,6 @@
+[submodule "polybench/dist/webassembly-polybench-c"]
+	path = polybench/dist/webassembly-polybench-c
+	url = https://github.com/ZenLulz/webassembly-polybench-c.git
+[submodule "polybench/dist/polybench-c"]
+	path = polybench/dist/polybench-c
+	url = https://github.com/ZenLulz/polybench-c.git

@@ -1,0 +1,19 @@
+enclave {
+    from "sgx_tprotected_fs.edl" import *;
+    
+    trusted {
+        include "sgx/wasi_datatypes.h"
+    };
+    
+    untrusted {
+        /* Return the time value of a clock. Note: This is similar to clock_gettime in POSIX. */
+        int ocall_clock_gettime(clockid_t clk_id, [out] struct timespec *ts);
+        int ocall_stat([in, string] const char *path, [out, size=buf_len] void *buf, unsigned int buf_len);
+        int ocall_fstat(int fd, [out, size=buf_len] void *buf, unsigned int buf_len);
+        int ocall_fstatat(int dirfd, [in, string]const char *pathname,
+                          [out, size=buf_len]void *buf,
+                          unsigned int buf_len, int flags);
+        int ocall_get_errno();
+        int ocall_fcntl(int fd, int cmd);
+    };
+};
