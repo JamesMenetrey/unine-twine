@@ -1,7 +1,9 @@
 # TWINE Runtime (based on WAMR)
-This repository is a fork from the official [WAMR WebAssembly runtime](https://github.com/bytecodealliance/wasm-micro-runtime).
-Its usage is detailed in the benchmarks suite.
+This repository is a fork of the official [WebAssembly Micro Runtime (WAMR)](https://github.com/bytecodealliance/wasm-micro-runtime). Its usage is detailed in the benchmarks suite. In addition, it featues an example of SQLite in Wasm (`samples/sqlite`) and the dynamic loading of a Wasm in an enclave (`product-mini/platforms/linux-sgx/dynamic-loading`).
 
+## License
+The changes of WAMR runtime are licensed under Apache license 2.0.
+Check the file `LICENSE` for more information.
 
 
 WebAssembly Micro Runtime
