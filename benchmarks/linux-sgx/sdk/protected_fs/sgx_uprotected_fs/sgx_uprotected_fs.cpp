@@ -329,6 +329,76 @@ int32_t u_sgxprotectedfs_fread_node(void* f, uint64_t node_number, uint8_t* buff
 	return 0;
 }
 
+typedef struct _buffer_container_t {
+	uint8_t* buffer;
+} buffer_container_t;
+#define NODE_SIZE 4096
+
+uint8_t static_buffer[NODE_SIZE];
+
+int32_t u_sgxprotectedfs_fread_node_no_buffer_copy(void* f, uint64_t node_number, uint32_t node_size, void* raw_buffer_container, uint32_t)
+{
+	START_PROFILING(fread_node, PROFILING_UNTRUSTED_LEVEL_FILE_API);
+
+	buffer_container_t* buffer_container = (buffer_container_t*)raw_buffer_container;
+	buffer_container->buffer = static_buffer; //; (uint8_t*)malloc(node_size);
+
+	FILE* file = (FILE*)f;
+	uint64_t offset = node_number * node_size;
+	int result = 0;
+	size_t size = 0;
+
+	if (file == NULL)
+	{
+		DEBUG_PRINT("file is NULL\n");
+		STOP_PROFILING(fread_node, PROFILING_UNTRUSTED_LEVEL_FILE_API);
+		return -1;
+	}
+
+	if ((result = fseeko(file, offset, SEEK_SET)) != 0)
+	{
+		DEBUG_PRINT("fseeko returned %d\n", result);
+		if (errno != 0)
+		{
+			int err = errno;
+			STOP_PROFILING(fread_node, PROFILING_UNTRUSTED_LEVEL_FILE_API);
+			return err;
+		}
+		else
+		{
+			STOP_PROFILING(fread_node, PROFILING_UNTRUSTED_LEVEL_FILE_API);
+			return -1;
+		}
+	}
+
+	if ((size = fread(buffer_container->buffer, node_size, 1, file)) != 1)
+	{
+		int err = ferror(file);
+		if (err != 0)
+		{
+			DEBUG_PRINT("fread returned %ld [!= 1], ferror: %d\n", size, err);
+			STOP_PROFILING(fread_node, PROFILING_UNTRUSTED_LEVEL_FILE_API);
+			return err;
+		}
+		else if (errno != 0)
+		{
+			err = errno;
+			DEBUG_PRINT("fread returned %ld [!= 1], errno: %d\n", size, err);
+			STOP_PROFILING(fread_node, PROFILING_UNTRUSTED_LEVEL_FILE_API);
+			return err;
+		}
+		else
+		{
+			DEBUG_PRINT("fread returned %ld [!= 1], no error code\n", size);
+			STOP_PROFILING(fread_node, PROFILING_UNTRUSTED_LEVEL_FILE_API);
+			return -1;
+		}
+	}
+
+	STOP_PROFILING(fread_node, PROFILING_UNTRUSTED_LEVEL_FILE_API);
+	return 0;
+}
+
 
 int32_t u_sgxprotectedfs_fwrite_node(void* f, uint64_t node_number, uint8_t* buffer, uint32_t node_size)
 {

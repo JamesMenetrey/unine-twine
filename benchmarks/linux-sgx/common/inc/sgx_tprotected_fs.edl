@@ -35,6 +35,7 @@ enclave {
 		void*   u_sgxprotectedfs_exclusive_file_open([in, string] const char* filename, uint8_t read_only, [out] int64_t* file_size, [out] int32_t* error_code);
 		uint8_t u_sgxprotectedfs_check_if_file_exists([in, string] const char* filename);
 		int32_t u_sgxprotectedfs_fread_node([user_check] void* f, uint64_t node_number, [out, size=node_size] uint8_t* buffer, uint32_t node_size);
+		int32_t u_sgxprotectedfs_fread_node_no_buffer_copy([user_check] void* f, uint64_t node_number, uint32_t node_size, [out, size=buffer_container_size] void* buffer_container, uint32_t buffer_container_size);
 		int32_t u_sgxprotectedfs_fwrite_node([user_check] void* f, uint64_t node_number, [in, size=node_size] uint8_t* buffer, uint32_t node_size);
 		int32_t u_sgxprotectedfs_fclose([user_check] void* f);
 		uint8_t u_sgxprotectedfs_fflush([user_check] void* f);

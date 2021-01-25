@@ -428,17 +428,21 @@ file_data_node_t* protected_fs_file::get_data_node()
 			if (((file_data_node_t*)data)->type == FILE_DATA_NODE_TYPE) // type is in the same offset in both node types
 			{
 				file_data_node_t* file_data_node1 = (file_data_node_t*)data;
+#if 0 // No need to clear secure memory
 				BENCHMARK_START(memset_get_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 				memset_s(&file_data_node1->plain, sizeof(data_node_t), 0, sizeof(data_node_t));
 				BENCHMARK_STOP(memset_get_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
+#endif
 				delete file_data_node1;
 			}
 			else
 			{
 				file_mht_node_t* file_mht_node = (file_mht_node_t*)data;
+#if 0 // No need to clear secure memory
 				BENCHMARK_START(memset_get_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 				memset_s(&file_mht_node->plain, sizeof(mht_node_t), 0, sizeof(mht_node_t));
 				BENCHMARK_STOP(memset_get_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
+#endif
 				delete file_mht_node;
 			}
 		}
@@ -494,9 +498,14 @@ file_data_node_t* protected_fs_file::append_data_node()
 		return NULL;
 	}
 
+#if 0
 	BENCHMARK_START(memset_append_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 	memset(new_file_data_node, 0, sizeof(file_data_node_t));
 	BENCHMARK_STOP(memset_append_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
+#else
+	// Only field not set, except the ciphertext and plaintext buffers
+	new_file_data_node->need_writing = false; 
+#endif
 
 	new_file_data_node->type = FILE_DATA_NODE_TYPE;
 	new_file_data_node->new_node = true;
@@ -566,17 +575,24 @@ file_data_node_t* protected_fs_file::read_data_node()
 		return NULL;
 	}
 
+#if 0
 	BENCHMARK_START(memset_read_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 	memset(file_data_node, 0, sizeof(file_data_node_t));
 	BENCHMARK_STOP(memset_read_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
+#else
+	// Only fields not set, except the ciphertext and plaintext buffers
+	file_data_node->need_writing = false;
+	file_data_node->new_node = false;
+#endif
 
 	file_data_node->type = FILE_DATA_NODE_TYPE;
 	file_data_node->data_node_number = data_node_number;
 	file_data_node->physical_node_number = physical_node_number;
 	file_data_node->parent = file_mht_node;
 	
+	buffer_container_t buffer_container;
 	BENCHMARK_START(fread_node_read_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
-	status = u_sgxprotectedfs_fread_node(&result32, file, file_data_node->physical_node_number, file_data_node->encrypted.cipher, NODE_SIZE);
+	status = u_sgxprotectedfs_fread_node_no_buffer_copy(&result32, file, file_data_node->physical_node_number, NODE_SIZE, &buffer_container, sizeof(buffer_container_t));
 	BENCHMARK_STOP(fread_node_read_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 
 	if (status != SGX_SUCCESS || result32 != 0)
@@ -592,7 +608,7 @@ file_data_node_t* protected_fs_file::read_data_node()
 
 	// this function decrypt the data _and_ checks the integrity of the data against the gmac
 	BENCHMARK_START(crypto_read_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
-	status = sgx_rijndael128GCM_decrypt(&gcm_crypto_data->key, file_data_node->encrypted.cipher, NODE_SIZE, file_data_node->plain.data, empty_iv, SGX_AESGCM_IV_SIZE, NULL, 0, &gcm_crypto_data->gmac);
+	status = sgx_rijndael128GCM_decrypt(&gcm_crypto_data->key, buffer_container.buffer, NODE_SIZE, file_data_node->plain.data, empty_iv, SGX_AESGCM_IV_SIZE, NULL, 0, &gcm_crypto_data->gmac);
 	BENCHMARK_STOP(crypto_read_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 	
 	if (status != SGX_SUCCESS)
@@ -613,9 +629,11 @@ file_data_node_t* protected_fs_file::read_data_node()
 		
 	if (is_added == false)
 	{
+#if 0 // No need to clear secure memory
 		BENCHMARK_START(memset_read_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 		memset_s(&file_data_node->plain, sizeof(data_node_t), 0, sizeof(data_node_t)); // scrub the plaintext data
 		BENCHMARK_STOP(memset_read_data_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
+#endif
 
 		delete file_data_node;
 		last_error = ENOMEM;
@@ -695,9 +713,14 @@ file_mht_node_t* protected_fs_file::append_mht_node(uint64_t mht_node_number)
 		return NULL;
 	}
 
+#if 0
 	BENCHMARK_START(memset_append_mht_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 	memset(new_file_mht_node, 0, sizeof(file_mht_node_t));
 	BENCHMARK_STOP(memset_append_mht_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
+#else
+	// Only field not set, except the ciphertext and plaintext buffers
+	new_file_mht_node->new_node = false;
+#endif
 
 	new_file_mht_node->type = FILE_MHT_NODE_TYPE;
 	new_file_mht_node->new_node = true;
@@ -755,17 +778,24 @@ file_mht_node_t* protected_fs_file::read_mht_node(uint64_t mht_node_number)
 		return NULL;
 	}
 
+#if 0
 	BENCHMARK_START(memset_read_mht_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 	memset(file_mht_node, 0, sizeof(file_mht_node_t));
 	BENCHMARK_STOP(memset_read_mht_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
+#else
+	// Only fields not set, except the ciphertext and plaintext buffers
+	file_mht_node->need_writing = false;
+	file_mht_node->new_node = false;
+#endif
 
 	file_mht_node->type = FILE_MHT_NODE_TYPE;
 	file_mht_node->mht_node_number = mht_node_number;
 	file_mht_node->physical_node_number = physical_node_number;
 	file_mht_node->parent = parent_file_mht_node;
 	
+	buffer_container_t buffer_container;
 	BENCHMARK_START(fread_node_read_mht_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
-	status = u_sgxprotectedfs_fread_node(&result32, file, file_mht_node->physical_node_number, file_mht_node->encrypted.cipher, NODE_SIZE);
+	status = u_sgxprotectedfs_fread_node_no_buffer_copy(&result32, file, file_mht_node->physical_node_number, NODE_SIZE, &buffer_container, sizeof(buffer_container_t));
 	BENCHMARK_STOP(fread_node_read_mht_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 
 	if (status != SGX_SUCCESS || result32 != 0)
@@ -780,7 +810,7 @@ file_mht_node_t* protected_fs_file::read_mht_node(uint64_t mht_node_number)
 
 	// this function decrypt the data _and_ checks the integrity of the data against the gmac
 	BENCHMARK_START(crypto_read_mht_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
-	status = sgx_rijndael128GCM_decrypt(&gcm_crypto_data->key, file_mht_node->encrypted.cipher, NODE_SIZE, (uint8_t*)&file_mht_node->plain, empty_iv, SGX_AESGCM_IV_SIZE, NULL, 0, &gcm_crypto_data->gmac);
+	status = sgx_rijndael128GCM_decrypt(&gcm_crypto_data->key, buffer_container.buffer, NODE_SIZE, (uint8_t*)&file_mht_node->plain, empty_iv, SGX_AESGCM_IV_SIZE, NULL, 0, &gcm_crypto_data->gmac);
 	BENCHMARK_STOP(crypto_read_mht_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 	
 	if (status != SGX_SUCCESS)
@@ -800,9 +830,11 @@ file_mht_node_t* protected_fs_file::read_mht_node(uint64_t mht_node_number)
 
 	if (is_added == false)
 	{
+#if 0 // No need to clear secure memory
 		BENCHMARK_START(memset_read_mht_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
 		memset_s(&file_mht_node->plain, sizeof(mht_node_t), 0, sizeof(mht_node_t));
 		BENCHMARK_STOP(memset_read_mht_node, PROFILING_TRUSTED_LEVEL_ATOMIC);
+#endif
 
 		delete file_mht_node;
 		last_error = ENOMEM;

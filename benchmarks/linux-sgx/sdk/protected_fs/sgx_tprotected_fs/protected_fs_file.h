@@ -131,6 +131,11 @@ typedef struct _file_data_node
 } file_data_node_t;
 
 
+typedef struct _buffer_container_t {
+	uint8_t* buffer;
+} buffer_container_t;
+
+
 class protected_fs_file
 {
 private:
