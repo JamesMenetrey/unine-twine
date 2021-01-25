@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     bh_log_set_verbose_level(BH_LOG_LEVEL_VERBOSE);
     static char global_heap_buf[50 * 1024 * 1024]; // TODO Fine-tuning required
     char *buffer, error_buf[128];
-    char * wasm_path = "out/wasm-apps/sqlite-test.wasm";
+    char * wasm_path = "wasm-apps/sqlite-test.wasm";
 
     wasm_module_t module = NULL;
     wasm_module_inst_t module_inst = NULL;

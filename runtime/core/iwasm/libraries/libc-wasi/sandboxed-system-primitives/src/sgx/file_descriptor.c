@@ -3,6 +3,10 @@
 #include "wasi_api_fd_sgx.h"
 #include "libc_wasi_benchmark_utils.h"
 
+// Internal buffer filled with zeroes and used when extending the size of protected files.
+#define ZEROES_PADDING_LENGTH 100000
+char zeroes_padding[ZEROES_PADDING_LENGTH] = {0};
+
 // Looks up a preopened resource table entry by number.
 static __wasi_errno_t fd_prestats_get_entry(
     struct fd_prestats *pt,
@@ -111,6 +115,9 @@ __wasi_errno_t wasmtime_ssp_fd_fdstat_get(
     __wasi_fdstat_t *buf
 ) {
   BENCHMARK_START(fd_fdstat_get, PROFILING_WASI_LEVEL_WASI_API);
+
+  ENSURE_UNTRUSTED_CALL_ENABLED("fd_fdstat_get");
+
   struct fd_table *ft = curfds;
   rwlock_rdlock(&ft->lock);
   struct fd_entry *fe;
@@ -197,6 +204,9 @@ __wasi_errno_t wasmtime_ssp_fd_filestat_get(
     __wasi_filestat_t *buf
 ) {
   BENCHMARK_START(fd_filestat_get, PROFILING_WASI_LEVEL_WASI_API);
+
+  ENSURE_UNTRUSTED_CALL_ENABLED("fd_filestat_get");
+
   struct fd_object *fo;
   __wasi_errno_t error =
       fd_object_get(curfds, &fo, fd, __WASI_RIGHT_FD_FILESTAT_GET, 0);
@@ -505,11 +515,16 @@ __wasi_errno_t wasmtime_ssp_fd_seek(
         if (wasi_error == __WASI_EINVAL) {
             // Assume the error is raised because the cursor is moved beyond the end of the file.
             // Try to move the cursor at the end of the file.
-            if (sgx_fseek(nfd, 0, SEEK_END) == 0){
+            if (sgx_fseek(nfd, 0, SEEK_END) == 0) {
                 // Write the missing zeroes
-                char zero = 0;
                 int64_t number_of_zeroes = offset - sgx_ftell(nfd);
-                sgx_fwrite(&zero, 1, number_of_zeroes, nfd);
+                int64_t min_count;
+
+                do {
+                    min_count = number_of_zeroes < ZEROES_PADDING_LENGTH ? number_of_zeroes : ZEROES_PADDING_LENGTH;
+                    sgx_fwrite(zeroes_padding, 1, min_count, nfd);
+                    number_of_zeroes -= ZEROES_PADDING_LENGTH;
+                } while (number_of_zeroes > 0);
 
                 // Move again at the end of the file
                 sgx_fseek(nfd, 0, SEEK_END);

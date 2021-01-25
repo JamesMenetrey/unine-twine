@@ -7,6 +7,7 @@ project (iwasm)
 
 set (WAMR_BUILD_PLATFORM "linux-sgx")
 set (WAMR_BUILD_SGX 1)
+set (WAMR_BUILD_SGX_DISABLE_UNTRUSTED_CALLS 0)
 
 # Reset default linker flags
 set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")

@@ -259,6 +259,10 @@ __wasi_errno_t wasmtime_ssp_path_unlink_file(
     const char *path,
     size_t pathlen
 ) {
-    os_printf("Not implemented WASI function called: 'path_unlink_file'.\n");
-    return __WASI_ECANCELED;
+    if(sgx_remove(path) != 0)
+    {
+        return convert_file_errno(errno);
+    }
+
+    return __WASI_ESUCCESS;
 }

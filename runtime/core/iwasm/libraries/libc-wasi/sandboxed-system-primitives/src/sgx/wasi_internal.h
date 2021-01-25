@@ -8,6 +8,14 @@
 #include "_atomic.h"
 #include "_locking.h"
 
+#if WAMR_BUILD_SGX_DISABLE_UNTRUSTED_CALLS
+#define ENSURE_UNTRUSTED_CALL_ENABLED(wasi_call) \
+  os_printf("The WASI function "#wasi_call" cannot not be called because Twine is compiled with the flag enforcing trusted POSIX implementation only.\n"); \
+  return __WASI_ECANCELED;
+#else
+#define ENSURE_UNTRUSTED_CALL_ENABLED(wasi_call)
+#endif
+
 //
 // Definition of missing types
 //

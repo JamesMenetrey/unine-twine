@@ -63,7 +63,7 @@ int main(int argc, char* argv[]){
         return -1;
     }
 
-    rc = sqlite3_exec(db, "INSERT INTO person VALUES('Pascal', 'Felber');", callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, "INSERT INTO person VALUES('John', 'Smith');", callback, 0, &zErrMsg);
     if( rc!=SQLITE_OK ){
         fprintf(stderr, "SQL error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);

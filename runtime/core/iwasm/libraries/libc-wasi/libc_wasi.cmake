@@ -11,9 +11,8 @@ include_directories(${LIBC_WASI_DIR}/sandboxed-system-primitives/include)
 include_directories(${LIBC_WASI_DIR}/sandboxed-system-primitives/src)
 file (GLOB_RECURSE source_common ${LIBC_WASI_DIR}/libc_wasi_wrapper.c ${LIBC_WASI_DIR}/sandboxed-system-primitives/src/common/*.c)
 
-if (DEFINED WAMR_BUILD_SGX)
+if (WAMR_BUILD_SGX EQUAL 1)
     # SGX
-    add_definitions (-DWASM_ENABLE_SGX=1)
     include_directories(${LIBC_WASI_DIR}/sandboxed-system-primitives/src/sgx)
     file (GLOB_RECURSE source_specific ${LIBC_WASI_DIR}/libc_wasi_benchmark.c ${LIBC_WASI_DIR}/sandboxed-system-primitives/src/sgx/*.c)
 
