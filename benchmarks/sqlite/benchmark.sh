@@ -20,7 +20,7 @@ function benchmark {
                 echo "./$3 $database_type $size $size $PRINT_MEMORY_USAGE $PROFILING_LEVEL &>> ${ROOT_DIR}/results/$1.csv.."
                 ./$3 $database_type $size $size $PRINT_MEMORY_USAGE $PROFILING_LEVEL &>> ${ROOT_DIR}/results/$1.csv
                 if [ ${database_type} == $DATABASE_IN_FILE ]; then
-                    rm -f benchmark.db benchmark.db_recovery
+                    rm -f benchmark.db benchmark.db_recovery benchmark.db-journal benchmark.db-journal_recovery
                 fi
             done
         done
@@ -32,7 +32,10 @@ echo "Script started at `date`."
 
 benchmark benchmark-native build benchmark-native
 benchmark benchmark-wasm build benchmark-wasm
+benchmark benchmark-sgx . run-benchmark.sh
 benchmark benchmark-wasm-sgx src app
-benchmark benchmark-wasm-sgx-official src app
+
+# Enable to measure the official WAMR implementation
+#benchmark benchmark-wasm-sgx-official src app
 
 echo "Script ended at `date`."

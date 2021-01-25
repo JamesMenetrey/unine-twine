@@ -3,7 +3,7 @@
   <ProdID>0</ProdID>
   <ISVSVN>0</ISVSVN>
   <StackMaxSize>0x40000</StackMaxSize>
-  <HeapMaxSize>0xFA00000</HeapMaxSize> <!-- 0xFA00000 = 250MB -->           
+  <HeapMaxSize>0xCD00000</HeapMaxSize> <!-- 0xCD00000 = 205MB -->           
   <ReservedMemMaxSize>0x400000</ReservedMemMaxSize> <!-- Approximatively the size of the WASM AoT -->
   <ReservedMemExecutable>1</ReservedMemExecutable>
   <TCSNum>10</TCSNum>

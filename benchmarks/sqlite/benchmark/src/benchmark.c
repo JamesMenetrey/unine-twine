@@ -1,18 +1,19 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "sqlite3.h"
 #include "benchmark.h"
 #include "random.h"
 
 // Number of pages.
-// Default cache size = FLAGS_page_size * FLAGS_num_pages = 16 MB.
-static int FLAGS_num_pages = 4096;
+// Default cache size = FLAGS_page_size * FLAGS_num_pages = 8 MB.
+static int FLAGS_num_pages = 2048;
 
 // Page size. Default 4 KB.
 static int FLAGS_page_size = 4096;
 
 // Journal mode. Default DELETE mode.
-static char* FLAGS_journal_mode = "MEMORY";
+static char* FLAGS_journal_mode = "DELETE";
 
 // Synchronization mode. Default NORMAL mode.
 static char* FLAGS_synchronization_mode = "NORMAL";
@@ -47,11 +48,23 @@ inline static void execute(const char* query)
     error_check_with_msg(status, err_msg);
 }
 
+inline static int compute_overhead_for_records(int number_of_write)
+{
+    // For 1k records, we measured a minimum overhead of 1M of memory, while
+    // for 1M records, we measured a minimum overhead of 15M of memory.
+    // The following coefficients are found by assuming a linear relation exists
+    // between these two points. Hence we find the related linear equation.
+    int a = 81, b = 919541;
+
+    return a * number_of_write + b;
+}
+
 void open_db(database_type_t database_type, int number_of_write)
 {
     // Configure SQLite to use a big buffer of memory for its heap
-    int size = 1024 * number_of_write + number_of_write * 200;
+    int size = 1024 * number_of_write + compute_overhead_for_records(number_of_write);
     database_memory = malloc(size);
+    memset(database_memory, 0, size);
 
     int status = sqlite3_config(SQLITE_CONFIG_HEAP, database_memory, size, 2);
     if (status)
@@ -76,9 +89,6 @@ void open_db(database_type_t database_type, int number_of_write)
     // Make sure the database is clear and the settings applied,
     // (required for WAMR, otherwise the internal number of pages of SQLite is not set to zero).
     sqlite3_db_config(db, SQLITE_DBCONFIG_RESET_DATABASE, 1, 0);
-
-    snprintf(query, 100, "PRAGMA journal_mode = %s", FLAGS_journal_mode);
-    execute(query);
 
     snprintf(query, 100, "PRAGMA cache_size = %d", FLAGS_num_pages);
     execute(query);
@@ -243,4 +253,25 @@ void print_memory_usage(void)
     sqlite3_db_status(db, SQLITE_DBSTATUS_STMT_USED, &value, &highestValue, 0);
     fprintf(stderr, "[SQLITE_DBSTATUS_STMT_USED] value: %d (%.2f MB), highestValue: %d (%.2f MB)\n",
         value, (float)value / 1024 / 1024, highestValue, (float)highestValue / 1024 / 1024);
+}
+
+static int display_max_id_callback(void *NotUsed, int argc, char **argv, char **azColName){
+    int i;
+    for(i=0; i<argc; i++){
+        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
+    printf("\n");
+    return 0;
+}
+
+void display_max_id()
+{
+    int status;
+    char *zErrMsg = 0;
+    
+    status = sqlite3_exec(db, "SELECT MAX(Id) FROM Benchmark", display_max_id_callback, 0, &zErrMsg);
+    if (status != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+    }
 }

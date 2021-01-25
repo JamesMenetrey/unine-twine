@@ -9,6 +9,8 @@ SGX_ARCH ?= x64
 SGX_PRERELEASE ?= 1
 SGX_BENCHMARK_LIBRARY_PATH = ../../../linux-sgx/build/linux
 BENCHMARK_SGX_SDK = ../../../linux-sgx
+INSTRUMENTATION_PATH = ../../instrumentation-callbacks
+INSTRUMENTATION_CALLBACKS_NAME ?= timing_callbacks
 
 ifeq ($(shell getconf LONG_BIT), 32)
 	SGX_ARCH := x86
@@ -164,7 +166,11 @@ App/%.o: App/%.cpp
 	@$(CXX) $(App_Cpp_Flags) -c $< -o $@ -I../../benchmark/include
 	@echo "CXX  <=  $<"
 
-$(App_Name): App/Enclave_u.o $(App_Cpp_Objects)
+$(INSTRUMENTATION_PATH)/src/$(INSTRUMENTATION_CALLBACKS_NAME).o: $(INSTRUMENTATION_PATH)/src/$(INSTRUMENTATION_CALLBACKS_NAME).c
+	@$(CXX) $(App_Cpp_Flags) -c $< -o $@ -I../../benchmark/include -I$(INSTRUMENTATION_PATH)/include
+	@echo "CXX  <=  $<"
+
+$(App_Name): $(INSTRUMENTATION_PATH)/src/$(INSTRUMENTATION_CALLBACKS_NAME).o App/Enclave_u.o $(App_Cpp_Objects)
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
@@ -199,4 +205,4 @@ $(Signed_Enclave_Name): $(Enclave_Name)
 .PHONY: clean
 
 clean:
-	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.*
+	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.* $(INSTRUMENTATION_PATH)/src/*.o

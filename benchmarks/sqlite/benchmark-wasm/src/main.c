@@ -10,10 +10,11 @@
 #include "wasm_export.h"
 #include "bh_read_file.h"
 #include "benchmark.h"
+#include "instrumentation_callbacks.h"
 
-#define GLOBAL_HEAP_SIZE (240 * 1024 * 1024)
-#define HEAP_SIZE (1024 * 1024 * 4)
-#define STACK_SIZE (1024 * 1024 * 5)
+#define GLOBAL_HEAP_SIZE (201 * 1024 * 1024)
+#define HEAP_SIZE 0
+#define STACK_SIZE (1024 * 1024 * 1)
 
 #define LOOKUP_WASM_FUNC(func_name) \
     if(!(func_name = wasm_runtime_lookup_function(module_inst, #func_name, NULL))){ \
@@ -35,6 +36,8 @@ void perform_benchmark(
     const database_type_t database_type,
     const int must_print_memory_usage)
 {
+    on_initialization_finished();
+
     // Call the main function of the WASM
     clock_t start, end;
     int wasm_argc = 0;
@@ -86,7 +89,7 @@ void perform_benchmark(
     CALL_WASM_FUNC(insert_data);
     end = clock();
 
-    printf("i,%d,%d,%d,%ld\n", database_type, number_of_write, number_of_read, end - start);
+    on_records_inserted(database_type, number_of_write, number_of_read, end - start);
 
     // Query the given amount of data in the database
     func_argc = 2;
@@ -97,13 +100,13 @@ void perform_benchmark(
     CALL_WASM_FUNC(query_data_sequential);
     end = clock();
 
-    printf("qs,%d,%d,%d,%ld\n", database_type, number_of_write, number_of_read, end - start);
+    on_sequential_queries_finished(database_type, number_of_write, number_of_read, end - start);
 
     start = clock();
     CALL_WASM_FUNC(query_data_random);
     end = clock();
 
-    printf("qr,%d,%d,%d,%ld\n", database_type, number_of_write, number_of_read, end - start);
+    on_random_queries_finished(database_type, number_of_write, number_of_read, end - start);
 
     if (must_print_memory_usage)
     {
@@ -154,7 +157,6 @@ int main(int argc, char *argv[])
     memset(&init_args, 0, sizeof(RuntimeInitArgs));
 
     void* global_heap_buf = malloc(GLOBAL_HEAP_SIZE);
-    memset(global_heap_buf, 0, GLOBAL_HEAP_SIZE);
 
     init_args.mem_alloc_type = Alloc_With_Pool;
     init_args.mem_alloc_option.pool.heap_buf = global_heap_buf;

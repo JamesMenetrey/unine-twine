@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
 #include "benchmark.h"
+#include "instrumentation_callbacks.h"
 #include "random.h"
 
 int main(int argc, char* argv[])
@@ -26,6 +28,8 @@ int main(int argc, char* argv[])
 
     clock_t start, end;
 
+    on_initialization_finished();
+
     init_rand();
     open_db(database_type, number_of_write);
     setup_database();
@@ -33,17 +37,17 @@ int main(int argc, char* argv[])
     start = clock();
     insert_data(number_of_write);
     end = clock();
-    printf("i,%d,%d,%d,%ld\n", database_type, number_of_write, number_of_read, end - start);
+    on_records_inserted(database_type, number_of_write, number_of_read, end - start);
 
     start = clock();
     query_data_sequential(number_of_write, number_of_read);
     end = clock();
-    printf("qs,%d,%d,%d,%ld\n", database_type, number_of_write, number_of_read, end - start);
+    on_sequential_queries_finished(database_type, number_of_write, number_of_read, end - start);
 
     start = clock();
     query_data_random(number_of_write, number_of_read);
     end = clock();
-    printf("qr,%d,%d,%d,%ld\n", database_type, number_of_write, number_of_read, end - start);
+    on_random_queries_finished(database_type, number_of_write, number_of_read, end - start);
 
     if (must_print_memory_usage) print_memory_usage();
 

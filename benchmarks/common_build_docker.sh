@@ -50,3 +50,5 @@ docker run \
     -v `pwd`/sqlite:/sqlite \
     -e BUILDING_BENCHMARK_FLAG=$1 \
     unine_benchmark_sqlite
+
+$ROOT_DIR/sqlite/benchmark-sgx/build-benchmark.sh

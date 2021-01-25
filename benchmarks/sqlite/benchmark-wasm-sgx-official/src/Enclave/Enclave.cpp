@@ -10,9 +10,9 @@
 #include "benchmark_types.h"
 #include "benchmark_tprotected_fs.h"
 
-#define GLOBAL_HEAP_SIZE (240 * 1024 * 1024)
-#define HEAP_SIZE (1024 * 1024 * 4)
-#define STACK_SIZE (1024 * 1024 * 5)
+#define GLOBAL_HEAP_SIZE (200 * 1024 * 1024)
+#define HEAP_SIZE 0
+#define STACK_SIZE (1024 * 1024 * 1)
 
 #define DISPLAY_TIME(operation_type) \
     snprintf(output_buff, sizeof(output_buff), "%s,%d,%d,%d,%ld\n", \
@@ -178,7 +178,6 @@ void ecall_benchmark(uint8_t* wasm_buffer, size_t wasm_buffer_len, int database_
     memset(&init_args, 0, sizeof(RuntimeInitArgs));
 
     void* global_heap_buf = malloc(GLOBAL_HEAP_SIZE);
-    memset(global_heap_buf, 0, GLOBAL_HEAP_SIZE);
 
     init_args.mem_alloc_type = Alloc_With_Pool;
     init_args.mem_alloc_option.pool.heap_buf = global_heap_buf;

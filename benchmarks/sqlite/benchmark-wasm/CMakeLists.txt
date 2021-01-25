@@ -8,6 +8,13 @@ set(CMAKE_C_STANDARD 11)
 set(BENCHMARK_ROOT_DIR ../benchmark)
 set(BENCHMARK_INCLUDE_DIR ${BENCHMARK_ROOT_DIR}/include)
 
+# Import the instrumentation callbacks dependencies
+set(INSTRUMENTATION_DIR ../instrumentation-callbacks)
+set(INSTRUMENTATION_INCLUDE ${INSTRUMENTATION_DIR}/include)
+if (NOT DEFINED INSTRUMENTATION_SRC)
+    set(INSTRUMENTATION_SRC ${INSTRUMENTATION_DIR}/src/timing_callbacks.c)
+endif()
+
 ################  runtime settings  ################
 set (WAMR_BUILD_PLATFORM "linux")
 
@@ -41,7 +48,7 @@ add_library(vmlib ${WAMR_RUNTIME_LIB_SOURCE})
 include_directories(${CMAKE_CURRENT_LIST_DIR}/src)
 include (${SHARED_DIR}/utils/uncommon/shared_uncommon.cmake)
 
-add_executable (benchmark-wasm src/main.c ${UNCOMMON_SHARED_SOURCE})
-include_directories(benchmark-wasm PUBLIC ${BENCHMARK_INCLUDE_DIR})
+add_executable (benchmark-wasm src/main.c ${UNCOMMON_SHARED_SOURCE} ${INSTRUMENTATION_SRC})
+include_directories(benchmark-wasm PUBLIC ${BENCHMARK_INCLUDE_DIR} ${INSTRUMENTATION_INCLUDE})
 
 target_link_libraries (benchmark-wasm vmlib -lm -ldl -lpthread -lrt)

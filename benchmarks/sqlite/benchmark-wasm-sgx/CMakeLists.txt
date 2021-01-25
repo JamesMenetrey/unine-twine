@@ -7,6 +7,7 @@ project (sqlite_benchmark_wasm_sgx)
 
 set (WAMR_BUILD_PLATFORM "linux-sgx")
 set (WAMR_BUILD_SGX 1)
+set (WAMR_BUILD_SGX_DISABLE_UNTRUSTED_CALLS 0)
 
 # Set variables that references the benchmark project
 set(BENCHMARK_ROOT_DIR ../benchmark)

@@ -4,3 +4,4 @@
 .jupyter/
 .local/
 *.csv
+microbenchmarks-export.tex

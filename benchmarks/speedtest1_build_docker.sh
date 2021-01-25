@@ -40,3 +40,5 @@ docker run \
     -v `pwd`/sqlite:/sqlite \
     -v `pwd`/speedtest1:/speedtest1 \
     unine_benchmark_speedtest1
+
+$ROOT_DIR/speedtest1/benchmark-sgx/build-benchmark.sh

@@ -11,5 +11,6 @@ void insert_data(int number_of_write);
 void query_data_sequential(int number_of_data, int number_of_read);
 void query_data_random(int number_of_data, int number_of_read);
 void print_memory_usage(void);
+void display_max_id();
 
 #endif // COMMON_H

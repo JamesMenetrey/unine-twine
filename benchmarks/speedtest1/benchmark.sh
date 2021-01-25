@@ -11,12 +11,12 @@ function benchmark {
     do
         cd ${ROOT_DIR}/$1/$2
 
-        for i in {1..20}
+        for i in {1..25}
         do
             echo "./$3 $database_type &>> ${ROOT_DIR}/results/$1.csv.."
             ./$3 $database_type &>> ${ROOT_DIR}/results/$1.csv
             if [ ${database_type} == $DATABASE_IN_FILE ]; then
-                rm -f testdb testdb_recovery
+                rm -f testdb testdb_recovery testdb-journal testdb-journal_recovery
             fi
         done 
     done
@@ -26,6 +26,7 @@ echo "Script started at `date`."
 
 benchmark benchmark-native build benchmark-native
 benchmark benchmark-wasm build benchmark-wasm
+benchmark benchmark-sgx . run-benchmark.sh
 benchmark benchmark-wasm-sgx src app
 
 echo "Script ended at `date`."

@@ -12,11 +12,21 @@
 #include "benchmark_types.h"
 #include "benchmark_tprotected_fs.h"
 
-#define GLOBAL_HEAP_SIZE (240 * 1024 * 1024)
-#define HEAP_SIZE (1024 * 1024 * 4)
-#define STACK_SIZE (1024 * 1024 * 5)
+#define GLOBAL_HEAP_SIZE (200 * 1024 * 1024)
+#define HEAP_SIZE 0
+#define STACK_SIZE (1024 * 1024 * 1)
 
 #ifdef BENCHMARK_PROFILING
+
+#define ON_RECORDS_INSERTED() \
+    DISPLAY_TIME("i")
+
+#define ON_SEQUENTIAL_QUERIES_FINISHED() \
+    DISPLAY_TIME("qs")
+
+#define ON_RANDOM_QUERIES_FINISHED() \
+    DISPLAY_TIME("qr")
+
 #define DISPLAY_TIME(operation_type) \
     u_sgxprotectedfs_get_sum_of_tracked_time((void**)&untrusted_tracked_time); \
     trusted_tracked_time = (trusted_tracked_time_t*) benchmark_get_sum_of_tracked_time(); \
@@ -158,14 +168,23 @@
 
 #else
 
-#define DISPLAY_TIME(operation_type) \
-    snprintf(output_buff, sizeof(output_buff), "%s,%d,%d,%d,%ld\n", \
-        operation_type, \
-        database_type, \
+#define ON_RECORDS_INSERTED() \
+    on_records_inserted(database_type, \
         number_of_write, \
         number_of_read, \
-        (end - start)); \
-    ocall_print(output_buff);
+        (end - start));
+
+#define ON_SEQUENTIAL_QUERIES_FINISHED() \
+    on_sequential_queries_finished(database_type, \
+        number_of_write, \
+        number_of_read, \
+        (end - start));
+
+#define ON_RANDOM_QUERIES_FINISHED() \
+    on_random_queries_finished(database_type, \
+        number_of_write, \
+        number_of_read, \
+        (end - start));
 
 #endif
 
@@ -244,6 +263,8 @@ extern "C" {
 
 void perform_benchmark(database_type_t database_type, int number_of_write, int number_of_read, int must_print_memory_usage, int profiling_level)
 {
+    on_initialization_finished();
+
     char output_buff[1024];
     clock_t start, end, time_retrieval;
     untrusted_tracking_time_t* untrusted_tracked_time = NULL;
@@ -310,7 +331,7 @@ void perform_benchmark(database_type_t database_type, int number_of_write, int n
     CALL_WASM_FUNC(insert_data);
     end = enclave_clock();
 
-    DISPLAY_TIME("i")
+    ON_RECORDS_INSERTED()
 
     // Query sequentially the given amount of data in the database
     func_argc = 2;
@@ -321,14 +342,14 @@ void perform_benchmark(database_type_t database_type, int number_of_write, int n
     CALL_WASM_FUNC(query_data_sequential);
     end = enclave_clock();
 
-    DISPLAY_TIME("qs")
+    ON_SEQUENTIAL_QUERIES_FINISHED()
 
     // Query randomly the given amount of data in the database
     start = enclave_clock();
     CALL_WASM_FUNC(query_data_random);
     end = enclave_clock();
 
-    DISPLAY_TIME("qr")
+    ON_RANDOM_QUERIES_FINISHED()
 
     // Display the memory usage of SQLite if requested
     if (must_print_memory_usage)
@@ -358,7 +379,6 @@ void ecall_benchmark(uint8_t* wasm_buffer, size_t wasm_buffer_len, int database_
     memset(&init_args, 0, sizeof(RuntimeInitArgs));
 
     void* global_heap_buf = malloc(GLOBAL_HEAP_SIZE);
-    memset(global_heap_buf, 0, GLOBAL_HEAP_SIZE);
 
     init_args.mem_alloc_type = Alloc_With_Pool;
     init_args.mem_alloc_option.pool.heap_buf = global_heap_buf;

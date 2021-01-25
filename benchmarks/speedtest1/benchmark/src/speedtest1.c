@@ -2614,8 +2614,8 @@ void speedtest1_initialize(int database_type)
       return;
   }
 
-  int argc = 8;
-  char *argv[] = { NULL, "-journal", "MEMORY", "-cachesize", "4096", "-pagesize", "4096", database_type ? "testdb" : "--memdb" };
+  int argc = 6;
+  char *argv[] = { NULL, "-cachesize", "2048", "-pagesize", "4096", database_type ? "testdb" : "--memdb" };
 
   speedtest1_main(argc, argv);
 }

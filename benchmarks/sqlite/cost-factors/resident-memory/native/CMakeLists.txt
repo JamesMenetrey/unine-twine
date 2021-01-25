@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.17)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+
+project(sqlite_benchmark_native_memory)
+
+set(INSTRUMENTATION_SRC ../instrumentation-callbacks/src/memory_callbacks.c)
+
+add_subdirectory(../../../benchmark-native benchmark-native)

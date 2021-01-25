@@ -41,7 +41,7 @@ function profile {
         do
             echo "./$3 $DATABASE_IN_FILE $4 $4 $PRINT_MEMORY_USAGE $profiling_level &>> ${ROOT_DIR}/results/profiling-$1.csv.."
             ./$3 $DATABASE_IN_FILE $4 $4 $PRINT_MEMORY_USAGE $profiling_level &>> ${ROOT_DIR}/results/profiling-$1.csv
-            rm -f benchmark.db benchmark.db_recovery
+            rm -f benchmark.db benchmark.db_recovery benchmark.db-journal benchmark.db-journal_recovery
         done
     done
 }

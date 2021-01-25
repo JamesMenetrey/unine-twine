@@ -1,0 +1,8 @@
+*.csv
+*.log
+.cache
+.ipynb_checkpoints
+.ipython
+.jupyter
+.local
+cost-factors-export.tex

@@ -37,7 +37,7 @@ RUN wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key
 
 # SGX SDK
 WORKDIR /opt/intel
-RUN wget --quiet https://download.01.org/intel-sgx/latest/linux-latest/distro/ubuntu18.04-server/sgx_linux_x64_sdk_${SGX_SDK}.bin && \
+RUN wget --quiet https://download.01.org/intel-sgx/sgx-linux/2.11/distro/ubuntu18.04-server/sgx_linux_x64_sdk_${SGX_SDK}.bin && \
     chmod u+x sgx_linux_x64_sdk_${SGX_SDK}.bin && \
     echo "yes" | ./sgx_linux_x64_sdk_${SGX_SDK}.bin \
     source /opt/intel/sgxsdk/environment
