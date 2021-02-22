@@ -1,5 +1,5 @@
 # TWINE: An Embedded Trusted Runtime for WebAssembly
-*Paper in submission.*
+*To appear in ICDE'21 (2021 IEEE 37th International Conference on Data Engineering).*
 
 ## Reproducibility of the results
 The results shown in the paper can be reproduced using the [benchmarks' instructions](benchmarks/).
