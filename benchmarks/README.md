@@ -148,4 +148,4 @@ Check the file `LICENSE` for more information.
 
 ## Author
 
-Jämes Ménétrey @ University of Neuchâtel, Switzerland
+{Jämes Ménétrey, Marcelo Pasin, Pascal Felber, Valerio Schiavoni} @ University of Neuchâtel, Switzerland
