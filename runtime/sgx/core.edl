@@ -1,8 +1,0 @@
-enclave {
-    untrusted {
-        /* Print the given buffer in stdout. */
-        void ocall_print([in, string]const char* str);
-
-        __clock_t ocall_clock();
-    };
-};
