@@ -1,6 +1,0 @@
-# CMake
-Makefile
-
-build/
-.vscode/*
-*.code-workspace

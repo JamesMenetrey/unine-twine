@@ -1,0 +1,15 @@
+{
+  "args": [
+    "app"
+  ],
+  "root": {
+    "readonly": false
+  },
+  "ethreads": 1,
+  "oe_heap_pagecount": 1024,
+  "image_sizes": {
+    "num_heap_pages": 81920,
+    "num_stack_pages": 256
+  },
+  "verbose": true
+}

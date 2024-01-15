@@ -106,12 +106,6 @@ static struct Global {
 #endif
 } g;
 
-#include <time.h>
-long int user_clock()
-{
-  return clock();
-}
-
 /* Return " TEMP" or "", as appropriate for creating a table.
 */
 static const char *isTemp(int N){

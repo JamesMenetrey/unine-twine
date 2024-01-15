@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 # ==============================
 # Configuration static variables
 # ==============================
-ARG WASI_SDK_VERSION=10
+ARG WASI_SDK_VERSION=14
 ARG SGX_SDK=2.11.100.2
 ARG BENCHMARKS_ROOT_DIR=/sqlite
 

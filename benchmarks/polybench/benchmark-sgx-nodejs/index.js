@@ -1,0 +1,1 @@
+console.log("Hello from NodeJS through SGX-LKL enclave. NodeJS version: " + process.version);

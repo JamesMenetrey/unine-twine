@@ -1,6 +1,9 @@
-# Set a variable that references the SQLite library
+cmake_minimum_required(VERSION 3.17)
+
+set(CMAKE_C_STANDARD 11)
 set(SQLITE_DIR ../../sqlite/dist/sqlite)
 
+project(speedtest1_benchmark)
 
 #
 # SQLite configuration
@@ -24,14 +27,34 @@ target_compile_options(sqlite PUBLIC -O3)
 
 
 #
-# Benchmark configuration
+# Benchmark library configuration
 #
 
 # Include all the source code
 file(GLOB_RECURSE BENCHMARK_SOURCE_FILES src/*.c)
 
 # Create a static library
-add_library(benchmark ${BENCHMARK_SOURCE_FILES})
+add_library(benchmarklib ${BENCHMARK_SOURCE_FILES})
+
+# Include the header code files
+include_directories(benchmarklib PUBLIC include)
+
+# Link with the SQLite static library
+target_link_libraries(benchmarklib sqlite)
+
+# Additional compiler flags, such as the optimization one
+target_compile_options(benchmarklib PUBLIC -O3)
+
+
+#
+# Benchmark executable configuration
+#
+
+# Include all the source code
+file(GLOB_RECURSE BENCHMARK_SOURCE_FILES src/*.c)
+
+# Indicate to create an executable program for this project
+add_executable(benchmark ${BENCHMARK_SOURCE_FILES})
 
 # Include the header code files
 include_directories(benchmark PUBLIC include)

@@ -1,42 +1,38 @@
 #!/bin/bash
 
-ROOT_DIR=$(dirname $(realpath $0))
-WAMR_AOT_COMPILER_DIR=/opt/wamr-sdk/wamr-compiler
+SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source $SCRIPT_DIR/../common.sh
 
-echo "[+] Compiler the WAMR (UniNE) AoT compiler"
-# Check WAMR AoT compiler exists
-if [ ! -d $WAMR_AOT_COMPILER_DIR ] 
-then
-    echo "Error: WAMR AoT compiler not located into $WAMR_AOT_COMPILER_DIR."
-    echo "Stopping building benchmark."
-    exit 1
-fi
-cd /opt/wamr-sdk/wamr-compiler
-./build_llvm.sh
-rm -rf build
-mkdir -p build
-cd build
-cmake ..
-make
+set -e
 
-echo "[+] Building benchmark-native"
-rm -rf $ROOT_DIR/benchmark/build
-rm -rf $ROOT_DIR/benchmark-native/build
-mkdir -p $ROOT_DIR/benchmark-native/build
-cd $ROOT_DIR/benchmark-native/build
-cmake ..
-make
+build_optimized_ipfs
+build_runtime $((60 * 1024 * 1024)) $((80 * 1024 * 1024)) $((4 * 1024 * 1024)) $((4 * 1024 * 1024))
 
-echo "[+] Building benchmark-wasm"
-rm -rf $ROOT_DIR/benchmark-wasm/build
-mkdir -p $ROOT_DIR/benchmark-wasm/build
-cd $ROOT_DIR/benchmark-wasm/build
-../build-wasm.sh
-../build-benchmark.sh
+announce "Building the Docker container for Speedtest1"
+docker build $SCRIPT_DIR -t unine_speedtest1
 
-echo "[+] Building benchmark-wasm-sgx"
-rm -rf $ROOT_DIR/benchmark-wasm-sgx/build
-mkdir -p $ROOT_DIR/benchmark-wasm-sgx/build
-cd $ROOT_DIR/benchmark-wasm-sgx/build
-../build-wasm.sh
-../build-benchmark.sh
+announce "Compiling Speedtest1 native"
+cd $SCRIPT_DIR
+docker run \
+    --rm \
+    -u $(id -u ${USER}):$(id -g ${USER}) \
+    -v $WAMR_PATH:$WAMR_PATH \
+    -v $ROOT_DIR/sqlite:/sqlite \
+    -v $ROOT_DIR/speedtest1:/speedtest1 \
+    unine_speedtest1 \
+    ./build-native.sh
+
+announce "Compiling Speedtest1 native for SGX"
+cd $cd $SCRIPT_DIR/benchmark-sgx
+./build-benchmark.sh
+
+announce "Compiling Speedtest1 Wasm"
+cd $SCRIPT_DIR
+docker run \
+    --rm \
+    -u $(id -u ${USER}):$(id -g ${USER}) \
+    -v $WAMR_PATH:$WAMR_PATH \
+    -v $ROOT_DIR/sqlite:/sqlite \
+    -v $ROOT_DIR/speedtest1:/speedtest1 \
+    unine_speedtest1 \
+    ./build-wasm.sh

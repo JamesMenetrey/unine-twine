@@ -1,67 +1,36 @@
 #!/bin/bash
-# The arguments are forwarded to the scripts that build the benchmarks
 
-ROOT_DIR=$(dirname $(realpath $0))
-WAMR_AOT_COMPILER_DIR=/opt/wamr-sdk/wamr-compiler
-WAMR_OFFICIAL_AOT_COMPILER_DIR=/opt/wamr-sdk-official/wamr-compiler
+SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source $SCRIPT_DIR/../common.sh
 
-echo "[+] Compiler the WAMR (UniNE) AoT compiler"
-# Check WAMR AoT compiler exists
-if [ ! -d $WAMR_AOT_COMPILER_DIR ] 
-then
-    echo "Error: WAMR AoT compiler not located into $WAMR_AOT_COMPILER_DIR."
-    echo "Stopping building benchmark."
-    exit 1
-fi
-cd /opt/wamr-sdk/wamr-compiler
-./build_llvm.sh
-rm -rf build
-mkdir -p build
-cd build
-cmake ..
-make
+set -e
 
-echo "[+] Compiler the WAMR (official) AoT compiler"
-# Check WAMR AoT compiler exists
-if [ ! -d $WAMR_OFFICIAL_AOT_COMPILER_DIR ] 
-then
-    echo "Error: WAMR AoT compiler not located into $WAMR_OFFICIAL_AOT_COMPILER_DIR."
-    echo "Stopping building benchmark."
-    exit 1
-fi
-cd /opt/wamr-sdk-official/wamr-compiler
-./build_llvm.sh
-rm -rf build
-mkdir -p build
-cd build
-cmake ..
-make
+build_optimized_ipfs
+build_runtime $((200 * 1024 * 1024)) $((205 * 1024 * 1024)) $((256 * 1024)) $((4 * 1024 * 1024))
 
-echo "[+] Building benchmark-native"
-rm -rf $ROOT_DIR/benchmark/build
-rm -rf $ROOT_DIR/benchmark-native/build
-mkdir -p $ROOT_DIR/benchmark-native/build
-cd $ROOT_DIR/benchmark-native/build
-cmake ..
-make
+announce "Building the Docker container for SQLite microbenchmarks"
+docker build $SCRIPT_DIR -t unine_sqlite
 
-echo "[+] Building benchmark-wasm"
-rm -rf $ROOT_DIR/benchmark-wasm/build
-mkdir -p $ROOT_DIR/benchmark-wasm/build
-cd $ROOT_DIR/benchmark-wasm/build
-../build-wasm.sh
-../build-benchmark.sh $@
+announce "Compiling SQLite microbenchmarks Wasm"
+cd $SCRIPT_DIR
+docker run \
+    --rm \
+    -u $(id -u ${USER}):$(id -g ${USER}) \
+    -v $WAMR_PATH:$WAMR_PATH \
+    -v $ROOT_DIR/sqlite:/sqlite \
+    unine_sqlite \
+    ./build-wasm.sh $@
 
-echo "[+] Building benchmark-wasm-sgx"
-rm -rf $ROOT_DIR/benchmark-wasm-sgx/build
-mkdir -p $ROOT_DIR/benchmark-wasm-sgx/build
-cd $ROOT_DIR/benchmark-wasm-sgx/build
-../build-wasm.sh
-../build-benchmark.sh $@
+announce "Compiling SQLite microbenchmarks native for SGX"
+cd $cd $SCRIPT_DIR/benchmark-sgx
+./build-benchmark.sh
 
-echo "[+] Building benchmark-wasm-sgx-official"
-rm -rf $ROOT_DIR/benchmark-wasm-sgx-official/build
-mkdir -p $ROOT_DIR/benchmark-wasm-sgx-official/build
-cd $ROOT_DIR/benchmark-wasm-sgx-official/build
-../build-wasm.sh
-../build-benchmark.sh $@
+announce "Compiling SQLite microbenchmarks native"
+cd $SCRIPT_DIR
+docker run \
+    --rm \
+    -u $(id -u ${USER}):$(id -g ${USER}) \
+    -v $WAMR_PATH:$WAMR_PATH \
+    -v $ROOT_DIR/sqlite:/sqlite \
+    unine_sqlite \
+    ./build-native.sh $@

@@ -1,7 +1,7 @@
 #ifndef SPEEDTEST1_H
 #define SPEEDTEST1_H
 
-int speedtest1_initialize();
+void speedtest1_initialize(int database_type);
 void speedtest1_launch100();
 void speedtest1_launch110();
 void speedtest1_launch120();

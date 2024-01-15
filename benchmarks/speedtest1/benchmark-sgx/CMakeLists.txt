@@ -22,7 +22,7 @@ add_executable(benchmark-sgx ${BENCHMARK_NATIVE_SOURCE_FILES})
 include_directories(benchmark-sgx PUBLIC ${BENCHMARK_INCLUDE_DIR})
 
 # Link the benchmark project with this project
-target_link_libraries(benchmark-sgx benchmark)
+target_link_libraries(benchmark-sgx benchmarklib)
 
 # Additional compiler flags, such as the optimization one
 target_compile_options(benchmark-sgx PUBLIC -O3)
