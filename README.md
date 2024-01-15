@@ -1,4 +1,4 @@
-# Secure execution of WebAssembly within Intel SGX enclaves
+# Secure execution of WebAssembly within Intel SGX
 This repository contains the source code and the benchmarks of the journal article _A Comprehensive Trusted Runtime for WebAssembly with Intel SGX_.
 
 For the source code and the benchmarks of the paper _Twine: An Embedded Trusted Runtime for WebAssembly_, check out the tag [ICDE21-optimized-fs](https://github.com/JamesMenetrey/unine-twine/tree/ICDE21-optimized-fs).
