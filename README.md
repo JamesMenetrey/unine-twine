@@ -3,6 +3,9 @@ This repository contains the source code and the benchmarks of the journal artic
 
 For the source code and the benchmarks of the paper _Twine: An Embedded Trusted Runtime for WebAssembly_, check out the tag [ICDE21-optimized-fs](https://github.com/JamesMenetrey/unine-twine/tree/ICDE21-optimized-fs).
 
+## Project merged into WAMR
+Good news! 🎉 The project has been upstreamed to the [official repository](https://github.com/bytecodealliance/wasm-micro-runtime) of WAMR!
+
 
 ## A Comprehensive Trusted Runtime for WebAssembly with Intel SGX
 DOI: [10.1109/TDSC.2023.3334516](https://doi.org/10.1109/TDSC.2023.3334516)
@@ -64,3 +67,8 @@ Check the file `LICENSE` for more information.
 - {Jämes Ménétrey, Marcelo Pasin, Pascal Felber, Valerio Schiavoni} @ University of Neuchâtel, Switzerland
 - Giovanni Mazzeo @ University of Naples 'Parthenope', Italy
 - {Arne Hollum, Darshan Vaydia} @ Credora Inc., USA
+
+## Funding
+
+This software artefact incorporates results from the VEDLIoT project, which received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 957197.  
+[www.vedliot.eu](https://www.vedliot.eu)
